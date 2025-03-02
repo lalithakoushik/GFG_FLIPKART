@@ -44,6 +44,8 @@ app.use("/api/cart", cartRouter);
 app.use("/api/user", loginrouter);
 app.use("/api/password", passwordRouter);
 app.use("/api/address", addressRouter);
+app.use(itemRouter);
+
 
 app.listen(3000, () => {
   console.log("Server is running on http://localhost:3000");
