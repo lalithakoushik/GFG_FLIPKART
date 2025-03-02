@@ -1,44 +1,50 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import Product from './models/Product.js';  // Ensure this file exists
+import mongoose from "mongoose";
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import router from "./routes/emailRouter.js";
+import itemRouter from "./routes/itemRouter.js";
+import cartRouter from "./routes/cartRouter.js";
+import loginrouter from "./routes/loginRouter.js";
+import passwordRouter from "./routes/passwordRouter.js";
+import addressRouter from "./routes/addressRouter.js";
 
 dotenv.config(); // Load environment variables
 
 const app = express();
-
-// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(cors()); // Enable CORS for frontend communication
+app.use(express.static("public"));
+
+const url = process.env.MONGO_URL;
+
+if (!url) {
+  console.error("MONGO_URL is missing in .env file!");
+  process.exit(1);
+}
+
+console.log("MongoDB URL:", url);
 
 // Connect to MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/flipkartClone';
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+mongoose
+  .connect(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB!"))
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err);
+    process.exit(1);
+  });
 
-// API Route to Fetch Products
-app.get('/api/products', async (req, res) => {
-  try {
-    const products = await Product.find(); // Query the MongoDB database
-    res.status(200).json(products);
-  } catch (err) {
-    console.error("Error fetching products:", err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+// Routes
+app.use("/api/email", router);
+app.use("/api/items", itemRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/user", loginrouter);
+app.use("/api/password", passwordRouter);
+app.use("/api/address", addressRouter);
 
-// Default route
-app.get('/', (req, res) => {
-  res.send("API is running...");
-});
-
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(3000, () => {
+  console.log("Server is running on http://localhost:3000");
 });
